@@ -12,13 +12,32 @@
 	
 	<@ Result @>
 	
-    <div class="zform_wrapper">
-        <h2><: Simple Ticket Admin :></h2>
+	<h2><: Simple Ticket Admin :></h2>
+	<button class="button btn btn-primary" id="btn_sh" onClick="return ShowHide()"><: Show Ticket :></button>
+	
+    <div class="zgrid_wrapper" id="ColTlist" style="visibility:collapse">
+        <script type="text/javascript">
+          var ShowSSL = false;
+          function ShowHide()
+          {
+              ShowSSL = !ShowSSL;
+              if (ShowSSL)
+              { 
+                  document.getElementById('ColTlist').style.visibility = 'visible';
+                  document.getElementById('btn_sh').innerHTML = 'Hide Ticket';
+              }
+              else
+              {
+                  document.getElementById('ColTlist').style.visibility = 'collapse';
+                  document.getElementById('btn_sh').innerHTML = 'Show Ticket';
+              }
+              return false;
+          }
+        </script>
 		<form action="./?module=Simple_ticket_admin&action=read" method="post">
 		<table class="table table-striped">
 		<tr>
 		<th><: Ticket number :></th>
-		<th><: Username :></th>
 		<th><: Subject :></th>
 		<th><: Domain :></th>
 		<th><: Status :></th>
@@ -27,7 +46,6 @@
 		<% loop TicketList %>
 		<tr>
 		<td><& ticketnumber &></td>
-		<td><& username &></td>
 		<td><& ticketsubject &></td>
 		<td><& ticketdomain &></td>
 		<td><& ticketstatus &></td>
@@ -35,10 +53,11 @@
 		</tr>
 		<% endloop %>
 		</table>
-			<@ CSFR_Tag @>
 		</form>
+		</div>
 		
 		<% if isread %>
+		<div class="zgrid_wrapper">
 		<form action="./?module=Simple_ticket_admin&action=send" method="post">
             <table class="table table-striped">
 			<% loop Ticket %>
@@ -58,29 +77,28 @@
 					<th><: Subject :>:</th>
 					<td><& Ticket_subject &></td>
                 <tr>
-                    <th><: Your message :>:</th>
+                    <th><: Issue :>:</th>
                     <td><& Ticket_msg &></td>
                 </tr>
 				<tr>
-                    <th><: Answers :>:</th>
-                    <td><textarea name="inMessage" id="inMessage" rows="3" cols="80" /></textarea></td>
+                    <th><: You answers :>:</th>
+                    <td><textarea name="inMessage" id="inMessage" rows="3" cols="80" /><& Ticket_Answers &></textarea></td>
                 </tr>
 				<tr>
 					<th><: Status :></th>
-					<td><@ Ticketstatus @></td>
+					<td><select name="inStatus" id="inStatus">
+					<@ Ticketstatus @>
+                    </select></td>
 				</tr>
 				<tr>
                     <th colspan="2" align="right">
-					<input type="hidden" value="<& ticketnumber &>" name="innumber">
+					<input type="hidden" value="<& Ticket_number &>" name="innumber">
                         <button class="button-loader add-row btn btn-primary" type="submit" name="inSave" id="button"><: Make ticket :></button>
                     </th>
                 </tr>
 				<% endif %>
             </table>
-				<@ CSFR_Tag @>
         </form>
+		</div>
 		<% endif %>
-		
-    </div>
-
 </div>

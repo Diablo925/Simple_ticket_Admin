@@ -12,7 +12,6 @@ class module_controller extends ctrl_module
 	static function doread()
     {
 		global $controller;
-        runtime_csfr::Protect();
 		$currentuser = ctrl_users::GetUserDetail();
         $formvars = $controller->GetAllControllerRequests('FORM');
         //return self::ExectuteRead($formvars['innumber']);
@@ -23,73 +22,60 @@ class module_controller extends ctrl_module
 			 return true;
 	}
 	
-	static function ExectuteSendTicket($domain, $subject, $msg)
+	static function ExectuteSendTicket($Ticketstatus, $ticketid, $msg)
 	{
-		
 		global $zdbh;
 		global $controller;
-		$length = 4;
-		$ticketnumber = fs_director::GenerateRandomPassword($length, 4);
-		$date = date("Y-m-d");
-		$ticketid = "$date.$ticketnumber"; 
-		$Ticketstatus = "Open";
 		$currentuser = ctrl_users::GetUserDetail();
-		
-		$sql = "SELECT * FROM x_accounts WHERE ac_id_pk = :uid";
-		$sql = $zdbh->prepare($sql);
-        $sql->bindParam(':uid', $currentuser['userid']);
-		$sql->execute();
-        while ($row = $sql->fetch()) { $reseller = $row["ac_reseller_fk"]; }
-		$sql = $zdbh->prepare("INSERT INTO x_ticket (st_acc, st_number, st_domain, st_subject, st_meassge, st_status, st_groupid) VALUES (:uid, :number, :domain, :subject, :msg, :ticketstatus, :group)");
+		$date = date("Y-m-d - H:i:s");
+		$msg = "$date -- $msg";
+		$sql = $zdbh->prepare("UPDATE x_ticket SET st_ticketanswers = :msg, st_status = :ticketstatus WHERE st_number = :number AND st_groupid = :uid");
 		$sql->bindParam(':uid', $currentuser['userid']);
 		$sql->bindParam(':number', $ticketid);
-		$sql->bindParam(':domain', $domain);
-		$sql->bindParam(':subject', $subject);
 		$sql->bindParam(':msg', $msg);
 		$sql->bindParam(':ticketstatus', $Ticketstatus);
-		$sql->bindParam(':group', $reseller);
         $sql->execute();
+		
+		$sql_user = "SELECT * FROM x_ticket WHERE st_groupid = :uid AND st_number = :number";
+		$sql_user = $zdbh->prepare($sql_user);
+            $sql_user->bindParam(':uid', $currentuser['userid']);
+			$sql_user->bindParam(':number', $ticketid);
+            $sql_user->execute();
+            while ($row_user = $sql_user->fetch()) {
+				$userid = $row_user["st_acc"];
+			}
+			$sql_user1 = "SELECT * FROM x_accounts WHERE ac_id_pk = :uid";
+		$sql_user1 = $zdbh->prepare($sql_user1);
+            $sql_user1->bindParam(':uid', $userid);
+			$sql_user1->bindParam(':number', $ticketid);
+            $sql_user1->execute();
+            while ($row1 = $sql_user1->fetch()) {
+				$mail = $row1["ac_email_vc"];
+				$name = $row1["ac_user_vc"];
+			}
+		
+		    $email = $mail;
+			$emailsubject = "$ticketid -- You ticket has been updatet";
+            $emailbody = "Hi $name\n\n
+			$msg\n\n
+			ticket status is $Ticketstatus";
+		
+
+            $phpmailer = new sys_email();
+            $phpmailer->Subject = $emailsubject;
+            $phpmailer->Body = $emailbody;
+            $phpmailer->AddAddress($email);
+            $phpmailer->SendEmail();
+		
         self::$ok = true;
 		return true;
 	}
-	
-	static function doselect()
-    {
-        global $controller;
-        runtime_csfr::Protect();
-        $currentuser = ctrl_users::GetUserDetail();
-        $formvars = $controller->GetAllControllerRequests('FORM');
-		
-            if (isset($formvars['inMyTicket'])) {
-                header("location: ./?module=" . $controller->GetCurrentModule() . '&show=MyTicket');
-                exit;
-            }
-			if (isset($formvars['inNewTicket'])) {
-                header("location: ./?module=" . $controller->GetCurrentModule() . '&show=NewTicket');
-                exit;
-            }
-        return true;
-    }
-	
-	static function getisMyTicket()
-    {
-        global $controller;
-        $urlvars = $controller->GetAllControllerRequests('URL');
-        return (isset($urlvars['show'])) && ($urlvars['show'] == "MyTicket");
-    }
 	
 	static function getisread()
     {
         global $controller;
         $urlvars = $controller->GetAllControllerRequests('URL');
         return (isset($urlvars['show'])) && ($urlvars['show'] == "read");
-    }
-	
-	static function getisNewTicket()
-    {
-        global $controller;
-        $urlvars = $controller->GetAllControllerRequests('URL');
-        return (isset($urlvars['show'])) && ($urlvars['show'] == "NewTicket");
     }
 
 	static function ListSelectTicket($uid)
@@ -99,7 +85,7 @@ class module_controller extends ctrl_module
 		$currentuser = ctrl_users::GetUserDetail();
 		$urlvars = $controller->GetAllControllerRequests('URL');
 		$ticket = $urlvars['ticket'];
-		$sql = "SELECT * FROM x_ticket WHERE st_acc = :uid AND st_number = :number";
+		$sql = "SELECT * FROM x_ticket WHERE st_groupid = :uid AND st_number = :number ORDER BY st_number";
         $numrows = $zdbh->prepare($sql);
         $numrows->bindParam(':uid', $currentuser['userid']);
 		$numrows->bindParam(':number', $ticket);
@@ -110,12 +96,9 @@ class module_controller extends ctrl_module
 			$sql->bindParam(':number', $ticket);
             $res = array();
             $sql->execute();
-			
-			$sql_acc = "SELECT "
-			
             while ($row = $sql->fetch()) {
                 array_push($res, array('Ticket_number' => $row['st_number'], 'Ticket_domain' => $row['st_domain'],
-										'Ticket_subject' => $row['st_subject'], 'Ticket_msg' => $row['st_meassge'], 'Ticket_answers' => $row['st_ticketanswers']));
+										'Ticket_subject' => $row['st_subject'], 'Ticket_msg' => $row['st_meassge'], 'Ticket_Answers' => $row['st_ticketanswers']));
             }
             return $res;
         } else {
@@ -124,35 +107,34 @@ class module_controller extends ctrl_module
 		
 	}
 	
-   	static function ListDomain($uid)
-    {
-        global $zdbh;
+	static function getTicketstatus()
+	{
+		global $zdbh;
 		global $controller;
 		$currentuser = ctrl_users::GetUserDetail();
-        $sql = "SELECT * FROM x_vhosts WHERE vh_acc_fk = :uid AND vh_deleted_ts IS NULL";
-        $numrows = $zdbh->prepare($sql);
-        $numrows->bindParam(':uid', $currentuser['userid']);
-        $numrows->execute();
-        if ($numrows->fetchColumn() <> 0) {
-            $sql = $zdbh->prepare($sql);
+		$urlvars = $controller->GetAllControllerRequests('URL');
+		$ticket = $urlvars['ticket'];
+		$sql = "SELECT * FROM x_ticket WHERE st_groupid = :uid AND st_number = :number";
+		$sql = $zdbh->prepare($sql);
             $sql->bindParam(':uid', $currentuser['userid']);
+			$sql->bindParam(':number', $ticket);
             $res = array();
             $sql->execute();
             while ($row = $sql->fetch()) {
-                array_push($res, array('dname' => $row['vh_name_vc']));
-            }
-            return $res;
-        } else {
-            return false;
-        }
-    }
+				if($row["st_status"] == "Open") { $statusopen = "selected"; }
+				if($row["st_status"] == "Close") { $statusclose = "selected"; }
+				if($row["st_status"] == "Pending") { $statuspending = "selected"; }
+				$res = '<option value="Open" '.$statusopen.'>Open</option><option value="Pending" '.$statuspending.'>Pending</option><option value="Close" '.$statusclose.'>Close</option>';
+			}
+			return $res;
+	}
 	
 	static function ListTicket($uid)
     {
 		global $zdbh;
 		global $controller;
 		$currentuser = ctrl_users::GetUserDetail();
-		$sql = "SELECT * FROM x_ticket WHERE st_acc = :uid";
+		$sql = "SELECT * FROM x_ticket WHERE st_groupid = :uid";
         $numrows = $zdbh->prepare($sql);
         $numrows->bindParam(':uid', $currentuser['userid']);
         $numrows->execute();
@@ -185,32 +167,25 @@ class module_controller extends ctrl_module
         return self::ListSelectTicket($currentuser['userid']);
     }
 	
-    static function getDomainList()
-    {
-        global $controller;
-        $currentuser = ctrl_users::GetUserDetail();
-        return self::ListDomain($currentuser['userid']);
-    }
-	
 	static function getTicketList()
     {
         global $controller;
+		
         $currentuser = ctrl_users::GetUserDetail();
         return self::ListTicket($currentuser['userid']);
     } 
 	
-	static function doSendTicket()
+	static function dosend()
     {
         global $controller;
-        runtime_csfr::Protect();
         $formvars = $controller->GetAllControllerRequests('FORM');
-        if (self::ExectuteSendTicket($formvars['inDomain'], $formvars['inSubject'], $formvars['inMessage']));
+        if (self::ExectuteSendTicket($formvars['inStatus'], $formvars['innumber'], $formvars['inMessage']));
 	}
 	
 	static function getResult()
     {
 		 if (self::$ok) {
-            return ui_sysmessage::shout(ui_language::translate("Your ticket has been created. We will look at it as soon as possible"), "zannounceok");
+            return ui_sysmessage::shout(ui_language::translate("The ticket is updatet!!"), "zannounceok");
         }
         return;
     }
