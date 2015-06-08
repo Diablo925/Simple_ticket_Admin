@@ -18,6 +18,7 @@
 		<table class="table table-striped">
 		<tr>
 		<th><: Ticket number :></th>
+		<th><: Username :></th>
 		<th><: Subject :></th>
 		<th><: Domain :></th>
 		<th><: Status :></th>
@@ -26,6 +27,7 @@
 		<% loop TicketList %>
 		<tr>
 		<td><& ticketnumber &></td>
+		<td><& username &></td>
 		<td><& ticketsubject &></td>
 		<td><& ticketdomain &></td>
 		<td><& ticketstatus &></td>
@@ -61,7 +63,17 @@
                 </tr>
 				<tr>
                     <th><: Answers :>:</th>
-                    <td><& Ticket_answers &></td>
+                    <td><textarea name="inMessage" id="inMessage" rows="3" cols="80" /></textarea></td>
+                </tr>
+				<tr>
+					<th><: Status :></th>
+					<td><@ Ticketstatus @></td>
+				</tr>
+				<tr>
+                    <th colspan="2" align="right">
+					<input type="hidden" value="<& ticketnumber &>" name="innumber">
+                        <button class="button-loader add-row btn btn-primary" type="submit" name="inSave" id="button"><: Make ticket :></button>
+                    </th>
                 </tr>
 				<% endif %>
             </table>

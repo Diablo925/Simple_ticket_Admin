@@ -110,6 +110,9 @@ class module_controller extends ctrl_module
 			$sql->bindParam(':number', $ticket);
             $res = array();
             $sql->execute();
+			
+			$sql_acc = "SELECT "
+			
             while ($row = $sql->fetch()) {
                 array_push($res, array('Ticket_number' => $row['st_number'], 'Ticket_domain' => $row['st_domain'],
 										'Ticket_subject' => $row['st_subject'], 'Ticket_msg' => $row['st_meassge'], 'Ticket_answers' => $row['st_ticketanswers']));
