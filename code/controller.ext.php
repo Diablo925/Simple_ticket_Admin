@@ -77,9 +77,10 @@ class module_controller extends ctrl_module
             $res = array();
             $sql->execute();
             while ($row = $sql->fetch()) {
-				$msg = nl2br($row['st_ticketanswers']);
+				$msganswers = nl2br($row['st_ticketanswers']);
+				$msg = nl2br($row['st_meassge']);
                 array_push($res, array('Ticket_number' => $row['st_number'], 'Ticket_domain' => $row['st_domain'],
-										'Ticket_subject' => $row['st_subject'], 'Ticket_msg' => $row['st_meassge'], 'Ticket_Answers' => $msg));
+										'Ticket_subject' => $row['st_subject'], 'Ticket_msg' => $msg, 'Ticket_Answers' => $msganswers));
             }
             return $res;
         } else {
