@@ -22,6 +22,20 @@ class module_controller extends ctrl_module
 			 return true;
 	}
 	
+	static function dosearch()
+    {
+        global $controller;
+        runtime_csfr::Protect();
+        $currentuser = ctrl_users::GetUserDetail();
+        $formvars = $controller->GetAllControllerRequests('FORM');
+		
+            if (isset($formvars['inSearchButton'])) {
+                header("location: ./?module=" . $controller->GetCurrentModule() . '&show=Search&search='.$formvars['insearch'].'');
+                exit;
+            }
+        return true;
+    }
+	
 	static function ExectuteSendTicket($Ticketstatus, $ticketid, $msg)
 	{
 		global $zdbh;

@@ -13,7 +13,9 @@
 	<@ Result @>
 	
 	<h2><: Simple Ticket Admin :></h2>
-	<button class="button btn btn-primary" id="btn_sh" onClick="return ShowHide()"><: Show Ticket :></button>
+	<form action="./?module=Simple_ticket_admin&action=search" method="post">
+	<button class="button btn btn-primary" id="btn_sh" onClick="return ShowHide()"><: Show Ticket :></button><input type="text" name="insearch" data-provide="typeahead" placeholder="Search" autocomplete="off"></td><td><button type="submit" class="btn-primary btn glyphicon glyphicon-search" aria-hidden="true" name="inSearchButton"></button><@ CSFR_Tag @>
+	</form>
 	
     <div class="zgrid_wrapper" id="ColTlist" style="visibility:collapse">
         <script type="text/javascript">
@@ -96,7 +98,7 @@
 				<tr>
                     <th colspan="2" align="right">
 					<input type="hidden" value="<& Ticket_number &>" name="innumber">
-                        <button class="button-loader add-row btn btn-primary" type="submit" name="inSave" id="button"><: Make ticket :></button>
+                        <button class="button-loader add-row btn btn-primary" type="submit" name="inSave" id="button"><: Save :></button>
                     </th>
                 </tr>
 				<% endif %>
