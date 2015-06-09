@@ -36,37 +36,6 @@ class module_controller extends ctrl_module
 		$sql->bindParam(':ticketstatus', $Ticketstatus);
         $sql->execute();
 		
-		$sql_user = "SELECT * FROM x_ticket WHERE st_groupid = :uid AND st_number = :number";
-		$sql_user = $zdbh->prepare($sql_user);
-            $sql_user->bindParam(':uid', $currentuser['userid']);
-			$sql_user->bindParam(':number', $ticketid);
-            $sql_user->execute();
-            while ($row_user = $sql_user->fetch()) {
-				$userid = $row_user["st_acc"];
-			}
-			$sql_user1 = "SELECT * FROM x_accounts WHERE ac_id_pk = :uid";
-		$sql_user1 = $zdbh->prepare($sql_user1);
-            $sql_user1->bindParam(':uid', $userid);
-			$sql_user1->bindParam(':number', $ticketid);
-            $sql_user1->execute();
-            while ($row1 = $sql_user1->fetch()) {
-				$mail = $row1["ac_email_vc"];
-				$name = $row1["ac_user_vc"];
-			}
-		
-		    $email = $mail;
-			$emailsubject = "$ticketid -- You ticket has been updatet";
-            $emailbody = "Hi $name\n\n
-			$msg\n\n
-			ticket status is $Ticketstatus";
-		
-
-            $phpmailer = new sys_email();
-            $phpmailer->Subject = $emailsubject;
-            $phpmailer->Body = $emailbody;
-            $phpmailer->AddAddress($email);
-            $phpmailer->SendEmail();
-		
         self::$ok = true;
 		return true;
 	}
@@ -122,9 +91,10 @@ class module_controller extends ctrl_module
             $sql->execute();
             while ($row = $sql->fetch()) {
 				if($row["st_status"] == "Open") { $statusopen = "selected"; }
+				if($row["st_status"] == "Re-Open") { $statusreopen = "selected"; }
 				if($row["st_status"] == "Close") { $statusclose = "selected"; }
 				if($row["st_status"] == "Pending") { $statuspending = "selected"; }
-				$res = '<option value="Open" '.$statusopen.'>Open</option><option value="Pending" '.$statuspending.'>Pending</option><option value="Close" '.$statusclose.'>Close</option>';
+				$res = '<option value="Open" '.$statusopen.'>Open</option><option value="Re-Open" '.$statusreopen.'>Re-Open</option><option value="Pending" '.$statuspending.'>Pending</option><option value="Close" '.$statusclose.'>Close</option>';
 			}
 			return $res;
 	}
