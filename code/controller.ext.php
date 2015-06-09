@@ -27,8 +27,19 @@ class module_controller extends ctrl_module
 		global $zdbh;
 		global $controller;
 		$currentuser = ctrl_users::GetUserDetail();
+		$sql_old= "SELECT * FROM x_ticket WHERE st_number = :number AND st_groupid = :uid";
+		$sql_old = $zdbh->prepare($sql_old);
+            $sql_old->bindParam(':uid', $currentuser['userid']);
+			$sql_old->bindParam(':number', $ticketid);
+            $sql_old->execute();
+            while ($row_old = $sql_old->fetch()) {
+				$oldmsg = $row_old["st_ticketanswers"];
+			}
+		
 		$date = date("Y-m-d - H:i:s");
-		$msg = "$date -- $msg";
+		$msg = "$oldmsg
+		--------------------------------
+		$date -- $msg";
 		$sql = $zdbh->prepare("UPDATE x_ticket SET st_ticketanswers = :msg, st_status = :ticketstatus WHERE st_number = :number AND st_groupid = :uid");
 		$sql->bindParam(':uid', $currentuser['userid']);
 		$sql->bindParam(':number', $ticketid);
@@ -66,8 +77,9 @@ class module_controller extends ctrl_module
             $res = array();
             $sql->execute();
             while ($row = $sql->fetch()) {
+				$msg = nl2br($row['st_ticketanswers']);
                 array_push($res, array('Ticket_number' => $row['st_number'], 'Ticket_domain' => $row['st_domain'],
-										'Ticket_subject' => $row['st_subject'], 'Ticket_msg' => $row['st_meassge'], 'Ticket_Answers' => $row['st_ticketanswers']));
+										'Ticket_subject' => $row['st_subject'], 'Ticket_msg' => $row['st_meassge'], 'Ticket_Answers' => $msg));
             }
             return $res;
         } else {

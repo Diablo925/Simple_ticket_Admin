@@ -82,7 +82,11 @@
                 </tr>
 				<tr>
                     <th><: You answers :>:</th>
-                    <td><textarea name="inMessage" id="inMessage" rows="3" cols="80" /><& Ticket_Answers &></textarea></td>
+                    <td><& Ticket_Answers &></td>
+                </tr>
+				<tr>
+                    <th><: Answers :>:</th>
+                    <td><textarea name="inMessage" id="inMessage" rows="3" cols="80" /></textarea></td>
                 </tr>
 				<tr>
 					<th><: Status :></th>
