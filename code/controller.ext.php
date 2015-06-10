@@ -62,6 +62,8 @@ class module_controller extends ctrl_module
 		global $zdbh;
 		global $controller;
 		$currentuser = ctrl_users::GetUserDetail();
+		
+		
 		$sql_old= "SELECT * FROM x_ticket WHERE st_number = :number AND st_groupid = :uid";
 		$sql_old = $zdbh->prepare($sql_old);
             $sql_old->bindParam(':uid', $currentuser['userid']);
@@ -69,7 +71,23 @@ class module_controller extends ctrl_module
             $sql_old->execute();
             while ($row_old = $sql_old->fetch()) {
 				$oldmsg = $row_old["st_ticketanswers"];
+				$userid = $row["st_acc"];
 			}
+		
+		$sql = "SELECT * FROM x_accounts WHERE ac_id_pk = :uid";
+		$sql = $zdbh->prepare($sql);
+        $sql->bindParam(':uid', $userid);
+		$sql->execute();
+        while ($row = $sql->fetch()) {
+		$email = $row["ac_email_vc"]; 
+		}
+		$sql = "SELECT * FROM x_profiles WHERE ud_id_pk = :uid";
+		$sql = $zdbh->prepare($sql);
+        $sql->bindParam(':uid', $userid);
+		$sql->execute();
+        while ($row = $sql->fetch()) {
+		$username = $row["ud_fullname_vc"];
+		}
 		
 		$date = date("Y-m-d - H:i:s");
 		$msg = "$oldmsg
@@ -81,6 +99,14 @@ class module_controller extends ctrl_module
 		$sql->bindParam(':msg', $msg);
 		$sql->bindParam(':ticketstatus', $Ticketstatus);
         $sql->execute();
+		
+			$emailsubject = "Your case has been updated (".$ticketid.")";
+			$emailbody = "Dear, ". $username ."\nYour case has benn updated\n------------------------\n".$msg."\nThe ticket is now:".$Ticketstatus."";
+			$phpmailer = new sys_email();
+            $phpmailer->Subject = $emailsubject;
+            $phpmailer->Body = $emailbody;
+            $phpmailer->AddAddress($email);
+            $phpmailer->SendEmail();
 		
         self::$ok = true;
 		return true;
