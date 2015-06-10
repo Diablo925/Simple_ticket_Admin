@@ -71,7 +71,7 @@ class module_controller extends ctrl_module
             $sql_old->execute();
             while ($row_old = $sql_old->fetch()) {
 				$oldmsg = $row_old["st_ticketanswers"];
-				$userid = $row["st_acc"];
+				$userid = $row_old["st_acc"];
 			}
 		
 		$sql = "SELECT * FROM x_accounts WHERE ac_id_pk = :uid";
@@ -89,10 +89,11 @@ class module_controller extends ctrl_module
 		$username = $row["ud_fullname_vc"];
 		}
 		
+		$mailmsg = $msg;
 		$date = date("Y-m-d - H:i:s");
 		$msg = "$oldmsg
-		--------------------------------
 		$date -- $msg";
+		
 		$sql = $zdbh->prepare("UPDATE x_ticket SET st_ticketanswers = :msg, st_status = :ticketstatus WHERE st_number = :number AND st_groupid = :uid");
 		$sql->bindParam(':uid', $currentuser['userid']);
 		$sql->bindParam(':number', $ticketid);
@@ -101,7 +102,7 @@ class module_controller extends ctrl_module
         $sql->execute();
 		
 			$emailsubject = "Your case has been updated (".$ticketid.")";
-			$emailbody = "Dear, ". $username ."\nYour case has benn updated\n------------------------\n".$msg."\nThe ticket is now:".$Ticketstatus."";
+			$emailbody = "Dear, ".$username."\nYour case has been updated\n------------------------\n\n".$mailmsg."\n\nThe ticket status is: ".$Ticketstatus."";
 			$phpmailer = new sys_email();
             $phpmailer->Subject = $emailsubject;
             $phpmailer->Body = $emailbody;
