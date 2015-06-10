@@ -11,31 +11,38 @@
     </div>
 	
 	<@ Result @>
-	
+	<: Search in you ticket Wildcard allow :>
+	<table class="table">
+	<tr><td><form action="./?module=Simple_ticket_admin&action=select" method="post">
+	<button class="button-loader btn btn-primary" type="submit" id="button" name="inListTicket" id="inListTicket" value="inListTicket"><: List Ticket :></button>
+	<@ CSFR_Tag @>
+	</form></td><td><form action="./?module=Simple_ticket_admin&action=search" method="post"><input type="text" name="insearch" data-provide="typeahead" placeholder="Search" autocomplete="off"></td><td><button type="submit" class="btn-primary btn glyphicon glyphicon-search" aria-hidden="true" name="inSearchButton"></button><@ CSFR_Tag @>
+	</form></td></tr>
+	</table>
 	<h2><: Simple Ticket Admin :></h2>
-	<form action="./?module=Simple_ticket_admin&action=search" method="post">
-	<button class="button btn btn-primary" id="btn_sh" onClick="return ShowHide()"><: Show Ticket :></button><input type="text" name="insearch" data-provide="typeahead" placeholder="Search" autocomplete="off"></td><td><button type="submit" class="btn-primary btn glyphicon glyphicon-search" aria-hidden="true" name="inSearchButton"></button><@ CSFR_Tag @>
-	</form>
-	
-    <div class="zgrid_wrapper" id="ColTlist" style="visibility:collapse">
-        <script type="text/javascript">
-          var ShowSSL = false;
-          function ShowHide()
-          {
-              ShowSSL = !ShowSSL;
-              if (ShowSSL)
-              { 
-                  document.getElementById('ColTlist').style.visibility = 'visible';
-                  document.getElementById('btn_sh').innerHTML = 'Hide Ticket';
-              }
-              else
-              {
-                  document.getElementById('ColTlist').style.visibility = 'collapse';
-                  document.getElementById('btn_sh').innerHTML = 'Show Ticket';
-              }
-              return false;
-          }
-        </script>
+	<div class="zgrid_wrapper">
+	<% if isSearch %>
+		<table class="table table-striped">
+		<tr>
+		<th><: Ticket number :></th>
+		<th><: Subject :></th>
+		<th><: Domain :></th>
+		<th><: Status :></th>
+		<th> </th>
+		</tr>
+		<% loop TicketListSearch %>
+		<tr>
+		<td><& ticketnumber &></td>
+		<td><& ticketsubject &></td>
+		<td><& ticketdomain &></td>
+		<td><& ticketstatus &></td>
+		<td><form action="./?module=Simple_ticket_admin&action=read" method="post"><input type="hidden" value="<& ticketnumber &>" name="innumber"><button class="button-loader btn btn-primary" type="submit" name="inRead" id="inRead" value="inRead"><: Read :></button><@ CSFR_Tag @></form></td>
+		</tr>
+		<% endloop %>
+		</table>
+		<% endif %>
+		
+		<% if isListTicket %>
 		<table class="table table-striped">
 		<tr>
 		<th><: Ticket number :></th>
@@ -54,11 +61,8 @@
 		</tr>
 		<% endloop %>
 		</table>
-		
-		</div>
-		
+		<% endif %>				
 		<% if isread %>
-		<div class="zgrid_wrapper">
 		<form action="./?module=Simple_ticket_admin&action=send" method="post">
             <table class="table table-striped">
 			<% loop Ticket %>
@@ -101,9 +105,10 @@
                         <button class="button-loader add-row btn btn-primary" type="submit" name="inSave" id="button"><: Save :></button>
                     </th>
                 </tr>
-				<% endif %>
+				<% endloop %>
             </table>
         </form>
-		</div>
 		<% endif %>
+		
+		</div>
 </div>

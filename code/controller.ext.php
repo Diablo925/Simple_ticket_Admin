@@ -9,6 +9,20 @@ class module_controller extends ctrl_module
      * The 'worker' methods.
      */
 	
+	static function doselect()
+    {
+        global $controller;
+        runtime_csfr::Protect();
+        $currentuser = ctrl_users::GetUserDetail();
+        $formvars = $controller->GetAllControllerRequests('FORM');
+		
+            if (isset($formvars['inListTicket'])) {
+                header("location: ./?module=" . $controller->GetCurrentModule() . '&show=ShowTicket');
+                exit;
+            }
+        return true;
+    }
+	
 	static function doread()
     {
 		global $controller;
@@ -22,6 +36,13 @@ class module_controller extends ctrl_module
 			 return true;
 	}
 	
+	static function getisListTicket()
+    {
+        global $controller;
+        $urlvars = $controller->GetAllControllerRequests('URL');
+        return (isset($urlvars['show'])) && ($urlvars['show'] == "ShowTicket");
+    }
+	
 	static function dosearch()
     {
         global $controller;
@@ -30,7 +51,7 @@ class module_controller extends ctrl_module
         $formvars = $controller->GetAllControllerRequests('FORM');
 		
             if (isset($formvars['inSearchButton'])) {
-                header("location: ./?module=" . $controller->GetCurrentModule() . '&show=Search&search='.$formvars['insearch'].'');
+                header("location: ./?module=" . $controller->GetCurrentModule() . '&show=Search&search='. $formvars['insearch']. '');
                 exit;
             }
         return true;
@@ -149,6 +170,32 @@ class module_controller extends ctrl_module
         }
 	} 
 	
+	static function ListTicketSearch($uid, $ticket)
+    {
+		global $zdbh;
+		global $controller;
+		$currentuser = ctrl_users::GetUserDetail();
+		$ticket = "$ticket%";
+		$sql = "SELECT * FROM x_ticket WHERE st_number LIKE :ticket AND st_groupid = :uid";
+        $numrows = $zdbh->prepare($sql);
+        $numrows->bindParam(':uid', $currentuser['userid']);
+		$numrows->bindParam(':ticket', $ticket);
+        $numrows->execute();
+        if ($numrows->fetchColumn() <> 0) {
+		$sql = $zdbh->prepare($sql);
+            $sql->bindParam(':uid', $currentuser['userid']);
+			$sql->bindParam(':ticket', $ticket);
+            $res = array();
+            $sql->execute();
+            while ($row = $sql->fetch()) {
+                array_push($res, array('ticketid' => $row['st_id'], 'ticketnumber' => $row['st_number'], 'ticketdomain' => $row['st_domain'], 'ticketsubject' => $row['st_subject'], 'ticketstatus' => $row['st_status']));
+            }
+            return $res;
+        } else {
+            return false;
+        }
+	}
+	
     /**
      * End 'worker' methods.
      */
@@ -172,6 +219,14 @@ class module_controller extends ctrl_module
         return self::ListTicket($currentuser['userid']);
     } 
 	
+	static function getTicketListSearch()
+    {
+        global $controller;
+        $currentuser = ctrl_users::GetUserDetail();
+		$urlvars = $controller->GetAllControllerRequests('URL');
+        return self::ListTicketSearch($currentuser['userid'], $urlvars['search']);
+    }
+	
 	static function dosend()
     {
         global $controller;
@@ -185,6 +240,13 @@ class module_controller extends ctrl_module
             return ui_sysmessage::shout(ui_language::translate("The ticket is updatet!!"), "zannounceok");
         }
         return;
+    }
+	
+	static function getisSearch()
+    {
+        global $controller;
+        $urlvars = $controller->GetAllControllerRequests('URL');
+        return (isset($urlvars['show'])) && ($urlvars['show'] == "Search");
     }
 
     /**
