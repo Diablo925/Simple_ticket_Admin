@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <module>
     <name>Simple ticket admin</name>
-    <version>100</version>
+    <version>101</version>
     <defaultcat>Reseller</defaultcat>
     <desc>Admin module to Simple ticket</desc>
     <authorname>Diablo925</authorname>

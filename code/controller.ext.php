@@ -99,6 +99,7 @@ class module_controller extends ctrl_module
 		$sql->bindParam(':number', $ticketid);
 		$sql->bindParam(':msg', $msg);
 		$sql->bindParam(':ticketstatus', $Ticketstatus);
+		$sql->bindParam(':ticketstatus', $Ticketstatus);
         $sql->execute();
 		
 			$emailsubject = "Your case has been updated (".$ticketid.")";
